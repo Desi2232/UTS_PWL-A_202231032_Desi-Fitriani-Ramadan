@@ -88,7 +88,7 @@
                                         <input type="hidden" name="book_id" value="{{ $borrow->book_id }}">
                                         <input type="hidden" name="status" value="dikembalikan">
                                         <button type="submit"
-                                            class="px-3 py-1 text-sm rounded bg-red-500 text-white hover:bg-red-600 disabled:bg-gray-300 disabled:text-gray-600 transition"
+                                            class="px-3 py-1 text-sm rounded bg-red-500 text-white hover:bg-red-600 disabled:bg-gray-300 disabled:text-gray-600                                                     transition"
                                             @if ($borrow->status == 'dikembalikan') disabled @endif>
                                             Kembalikan
                                         </button>
@@ -102,4 +102,3 @@
         @endif
     </div>
 @endsection
-
