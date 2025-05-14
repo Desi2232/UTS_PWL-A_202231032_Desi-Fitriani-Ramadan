@@ -114,6 +114,6 @@ class CategoryController extends Controller
      */
     public function destroy($id)
     {
-        //
+        return redirect()->route('category.index')->with('successDelete', 'Category has been deleted!');
     }
 }
