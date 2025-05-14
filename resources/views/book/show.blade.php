@@ -1,130 +1,105 @@
 @extends('layouts.main')
 
 @section('content')
-    <div class="p-4 h-full">
-        <div class="w-full bg-white rounded-lg p-3">
-            <div class="flex">
-                <a href="{{ route('books.index') }}" class="text-sm font-medium text-blue-500 flex items-center">
-                    <i data-feather="arrow-left" class="w-5 h-5 text-sky-600"></i>
-                    <span class="ml-2 text-sky-600">Detail Buku</span>
-                </a>
-            </div>
-            <div class="grid grid-cols-4 gap-6 mt-3 relative">
-                <div class="flex flex-col items-center sticky top-0">
-                    <img src="{{ asset('storage/' . $book->image) }}" alt="{{ $book->title }}"
-                        class="w-full h-96 object-cover rounded-lg shadow-lg">
-                    <form action="{{ route('borrow.store') }}" method="post" class="w-full">
-                        @csrf
-                        <input type="text" name="user_id" id="" value="{{ auth()->user()->id }}" hidden>
-                        <input type="text" name="book_id" id="" value="{{ $book->id }}" hidden>
-                        <input type="text" name="kode_peminjaman"
-                            value="{{ date('d') . auth()->user()->id . $book->kode_buku }}" hidden>
-                        <input type="text" name="status" value="meminjam" hidden>
-                        <button type="submit"
-                            class="w-full mt-3 transition-all duration-500 enabled:bg-gradient-to-br enabled:from-blue-400 enabled:to-blue-600 rounded-lg text-white font-medium p-4 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-center hover:bg-blue-600 text-sm shadow-lg hover:shadow-xl shadow-blue-200 hover:shadow-blue-200 focus:shadow-none disabled:shadow-none disabled:bg-slate-700 disabled:cursor-not-allowed"
-                            @if ($book->stok == 0) 
-                                @disabled(true) 
-                            @elseif ($book->borrow->isNotEmpty()) 
-                                @foreach ($book->borrow->where('status', 'meminjam') as $borrow)
-                                    @if ($book->stok == 0 || $borrow->user_id == auth()->user()->id)
-                                        @disabled(true) 
-                                    @endif
-                                @endforeach
-                            @endif>Pinjam
-                        </button>
-                    </form>
-                    <p class="text-slate-700 mt-2 text-sm font-medium">Jumlah Buku : {{ $book->stok }}</p>
-                </div>
-                <div class="col-span-3">
-                    <h1 class="text-3xl font-semibold text-slate-800">{{ $book->title }}</h1>
-                    <h2 class="text-base font-medium mt-2 text-slate-700">
-                        {{ $book->penulis }} - {{ $book->penerbit }}
-                    </h2>
-                    <div class="flex items-center">
-                        <div class="flex relative @if ($book->histories->isNotEmpty()) ml-2 @endif mt-2 items-center">
-                            @if ($book->histories)
-                                @if ($book->histories->isNotEmpty())
-                                    @foreach ($book->histories->unique('user_id') as $history)
-                                        <img src="https://ui-avatars.com/api/?name= {{ urlencode($history->user->name) }}&background=random" 
-                                            alt="{{ $history->user->name }}" 
-                                            class="w-10 h-10 rounded-full -ml-3 border border-white">
-                                    @endforeach
-                                @endif
-                                <span
-                                    class="text-slate-700 @if ($book->histories->isNotEmpty()) ml-2 @else mr-2 @endif">{{ $book->histories->count() }}
-                                    people have read</span>
-                            @endif
-                        </div>
-                        <div class="flex mt-2 @if ($book->histories->isNotEmpty()) ml-2 @endif">
-                            <h2 class="text-slate-700">| Kategori :</h2>
-                            <a href="{{ route('category.show', $book->category->slug) }}"
-                                class="text-slate-700 ml-1 underline decoration-double decoration-blue-600">{{ $book->category->name }}</a>
-                        </div>
-                    </div>
-                    <p class="text-base text-slate-700 mt-2">{{ $book->description }}</p>
-                </div>
-            </div>
-            {{-- <div class="flex mt-4 justify-between"> --}}
-            {{-- <div class="w-1/4">
-                    <img src="{{ asset('storage/' . $book->image) }}" alt="{{ $book->title }}"
-                        class="w-full h-96 object-cover rounded-lg shadow-lg">
-                </div>
-                <div class="w-3/4">
-                    <h1 class="text-2xl font-bold">{{ $book->title }}</h1>
-                </div> --}}
-            {{-- <div class="w-2/5 rounded overflow-hidden">
-                    <img src="{{ asset('storage/' . $book->image) }}" alt="{{ $book->title }}"
-                        class="w-full object-cover rounded-lg shadow-lg">
-                </div>
-                <div class="w-3/5 p-5 pt-0">
-                    <div class="p-5 rounded-lg shadow-lg">
-                        <div class="bg-white p-5 py-3 shadow rounded relative mb-6">
-                            <h1 class="font-semibold absolute -top-3.5 text-slate-800 bg-white text-base">Judul</h1>
-                            <p class="mb-0">{{ $book->title }}</p>
-                        </div>
-                        <div class="bg-white p-5 py-3 shadow rounded relative mb-6">
-                            <h1 class="font-semibold absolute -top-3.5 text-slate-800 bg-white text-base">Penulis</h1>
-                            <p class="mb-0">{{ $book->penulis }}</p>
-                        </div>
-                        <div class="bg-white p-5 py-3 shadow rounded relative mb-6">
-                            <h1 class="font-semibold absolute -top-3.5 text-slate-800 bg-white text-base">Penerbit</h1>
-                            <p class="mb-0">{{ $book->penerbit }}</p>
-                        </div>
-                        <a href="#" class="bg-white p-5 py-3 shadow rounded relative mb-6 inline-block w-full">
-                            <h1 class="font-semibold absolute -top-3.5 text-slate-800 bg-white text-base">Kategori</h1>
-                            <div class="flex justify-between items-center">
-                                <p class="mb-0">{{ $book->category->name }}</p>
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
-                                </svg>
-                            </div>
-                        </a>
-                        <div class="bg-white p-5 py-3 shadow rounded relative mb-6">
-                            <h1 class="font-semibold absolute -top-3.5 text-slate-800 bg-white text-base">Tahun Terbit</h1>
-                            <p class="mb-0">{{ $book->thn_terbit }}</p>
-                        </div>
-                        <div class="bg-white p-5 py-3 shadow rounded relative mb-6">
-                            <h1 class="font-semibold absolute -top-3.5 text-slate-800 bg-white text-base">Jumlah Buku</h1>
-                            <p class="mb-0">{{ $book->stok }}</p>
-                        </div>
-                        <div class="bg-white p-5 py-3 shadow rounded relative mb-6">
-                            <h1 class="font-semibold absolute -top-3.5 text-slate-800 bg-white text-base">Status Buku</h1>
-                            <p class="mb-0">{{ $book->status }}</p>
-                        </div>
-                        <div class="bg-white p-5 py-3 shadow rounded relative mb-6">
-                            <h1 class="font-semibold absolute -top-3.5 text-slate-800 bg-white text-base">Description</h1>
-                            <p class="mb-0">{{ $book->description }}</p>
-                        </div>
+<div class="p-4">
+    <div class="bg-white rounded-xl shadow-md p-6">
+        {{-- Kembali ke daftar buku --}}
+        <div class="mb-4">
+            <a href="{{ route('books.index') }}" class="inline-flex items-center text-blue-600 hover:underline text-sm font-medium">
+                <i data-feather="arrow-left" class="w-4 h-4 mr-1"></i> Kembali ke Daftar Buku
+            </a>
+        </div>
 
-                        <button type="submit"
-                            class="w-full transition-all duration-500 bg-blue-500 rounded-lg text-white font-medium px-5 py-2.5 focus:ring-2
-                            focus:ring-blue-500 focus:ring-offset-2 text-center hover:bg-blue-600 text-sm">Pinjam
-                        </button>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {{-- Gambar dan aksi pinjam --}}
+            <div class="md:col-span-1 flex flex-col items-center">
+                <img src="{{ asset('storage/' . $book->image) }}" alt="{{ $book->title }}" class="w-full h-64 object-cover">
+                    <class="w-full h-80 object-cover rounded-lg shadow-md">
+                
+                <p class="mt-4 text-gray-700 font-medium">Jumlah Buku: {{ $book->stok }}</p>
+
+                {{-- Form Peminjaman --}}
+                <form action="{{ route('borrow.store') }}" method="POST" class="w-full mt-4">
+                    @csrf
+                    <input type="hidden" name="user_id" value="{{ auth()->user()->id }}">
+                    <input type="hidden" name="book_id" value="{{ $book->id }}">
+                    <input type="hidden" name="kode_peminjaman" value="{{ date('d') . auth()->user()->id . $book->kode_buku }}">
+                    <input type="hidden" name="status" value="meminjam">
+
+                    @php
+                        $userBorrowing = $book->borrow->where('status', 'meminjam')->where('user_id', auth()->user()->id)->isNotEmpty();
+                        $disabled = $book->stok === 0 || $userBorrowing;
+                    @endphp
+
+                    <button type="submit"
+                        class="w-full px-4 py-3 text-sm font-medium text-white rounded-lg transition
+                        bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed shadow-md"
+                        @if ($disabled) disabled @endif>
+                        @if ($book->stok === 0)
+                            Stok Habis
+                        @elseif ($userBorrowing)
+                            Sudah Dipinjam
+                        @else
+                            Pinjam
+                        @endif
+                    </button>
+                </form>
+            </div>
+
+            {{-- Detail Buku --}}
+            <div class="md:col-span-3">
+                <h1 class="text-2xl font-semibold text-gray-800">{{ $book->title }}</h1>
+                <p class="text-gray-600 mt-1">{{ $book->penulis }} - {{ $book->penerbit }}</p>
+
+                {{-- Kategori dan histori pembaca --}}
+                <div class="flex items-center mt-4 flex-wrap gap-4">
+                    {{-- Histori pembaca --}}
+                    @if ($book->histories->isNotEmpty())
+                        <div class="flex items-center">
+                            @foreach ($book->histories->unique('user_id')->take(5) as $history)
+                                <img src="https://ui-avatars.com/api/?name={{ urlencode($history->user->name) }}&background=random"
+                                    alt="{{ $history->user->name }}"
+                                    class="w-8 h-8 rounded-full border-2 border-white -ml-2 shadow">
+                            @endforeach
+                            <span class="ml-3 text-sm text-gray-700">
+                                {{ $book->histories->count() }} orang telah membaca
+                            </span>
+                        </div>
+                    @endif
+
+                    {{-- Kategori --}}
+                    <div class="flex items-center text-sm text-gray-700">
+                        <span>Kategori:</span>
+                        <a href="{{ route('category.show', $book->category->slug) }}"
+                            class="ml-1 underline text-blue-600 hover:text-blue-800">
+                            {{ $book->category->name }}
+                        </a>
                     </div>
-                </div> --}}
-            {{-- </div> --}}
+                </div>
+
+                {{-- Deskripsi --}}
+                <div class="mt-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-2">Deskripsi</h2>
+                    <p class="text-gray-700 leading-relaxed">{{ $book->description }}</p>
+                </div>
+
+                {{-- Info Tambahan --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-600">Kode Buku</h3>
+                        <p class="text-gray-800">{{ $book->kode_buku }}</p>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-600">Tahun Terbit</h3>
+                        <p class="text-gray-800">{{ $book->thn_terbit }}</p>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-600">Halaman Buku</h3>
+                        <p class="text-gray-800 capitalize">{{ $book->halaman }}</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+</div>
 @endsection
